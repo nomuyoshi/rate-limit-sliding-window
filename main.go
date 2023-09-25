@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,7 +17,7 @@ func main() {
 	rc := redis.GetClient()
 
 	e := echo.New()
-	e.Use(middleware.RateLimiter(mymiddleware.NewSlidingWindowLogRedisStore(rc, 60, 10)))
+	e.Use(middleware.RateLimiter(mymiddleware.NewSlidingWindowLogRedisStore(rc, 60*time.Second, 100)))
 	e.GET("/hello", func(c echo.Context) error {
 		res := struct {
 			Message string
