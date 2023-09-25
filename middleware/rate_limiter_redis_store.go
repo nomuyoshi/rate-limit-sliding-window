@@ -41,7 +41,8 @@ func (s *slidingWindowLogRedisStore) Allow(identifier string) (bool, error) {
 	s.Client.ZAdd(ctx, identifier, member)
 
 	// リクエスト制限数以内か判定
-	if logs, err := s.Client.ZRange(ctx, identifier, 0, -1).Result(); err != nil {
+	// 期限切れのログは全てｚ削除ｚなので全件取得すればOK
+	if logs, err := s.getAllLogs(ctx, identifier); err != nil {
 		return false, fmt.Errorf("failed to get logs. detail = %w", err)
 	} else if len(logs) > s.Limit {
 		fmt.Printf("key = %s, count = %d\n", identifier, len(logs))
@@ -49,6 +50,10 @@ func (s *slidingWindowLogRedisStore) Allow(identifier string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (s *slidingWindowLogRedisStore) getAllLogs(ctx context.Context, identifier string) ([]string, error) {
+	return s.Client.ZRange(ctx, identifier, 0, -1).Result()
 }
 
 func (s *slidingWindowLogRedisStore) removeOutdatedLogs(ctx context.Context, identifier string, now time.Time) error {
