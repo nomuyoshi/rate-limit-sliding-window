@@ -6,11 +6,17 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	mymiddleware "myapp/middleware"
+	"myapp/redis"
 )
 
 func main() {
+	redis.SetClient()
+	rc := redis.GetClient()
+
 	e := echo.New()
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1)))
+	e.Use(middleware.RateLimiter(mymiddleware.NewSlidingWindowLogRedisStore(rc, 60, 10)))
 	e.GET("/hello", func(c echo.Context) error {
 		res := struct {
 			Message string

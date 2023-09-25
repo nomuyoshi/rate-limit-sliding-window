@@ -10,10 +10,15 @@ func newClient() *redis.Client {
 
 var client *redis.Client
 
-func Client() *redis.Client {
+func SetClient() {
 	if client == nil {
 		client = newClient()
 	}
+}
 
+func GetClient() *redis.Client {
+	if client == nil {
+		panic("should call SetClient")
+	}
 	return client
 }
